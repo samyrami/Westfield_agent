@@ -1,0 +1,30 @@
+node_modules
+dist
+dist-lambda
+dist-server
+.git
+.env
+.env.local
+.env.*.local
+*.log
+.vscode
+.idea
+.DS_Store
+lambda.zip
+
+# Documentación y plan — no necesarios para el container.
+README.md
+TESTING.md
+DEPLOY.md
+PLAN-westfield-agent-showcase.md
+CLAUDE.md
+
+# Vercel / Vite caches
+.vercel
+.vite
+*.tsbuildinfo
+
+# IMPORTANTE: data/maia-index.json SÍ debe entrar al build context.
+# El Dockerfile lo verifica con `test -f data/maia-index.json` y falla si falta.
+# Si no lo querés en el contexto, descomentá la línea siguiente y el build fallará a propósito.
+# data/

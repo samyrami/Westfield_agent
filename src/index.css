@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Sistema de diseño Westfield
+   Paleta tomada del sitio original westfield.crearia.co
+   ========================================================================== */
+:root {
+  /* Marca */
+  --primary: 211 62% 51%;        /* azul Westfield ~ #2B7BC4 */
+  --primary-glow: 211 62% 65%;
+  --secondary: 78 56% 51%;       /* verde lima ~ #9ACA3C */
+
+  /* Superficies */
+  --bg: 230 100% 4%;             /* #030014 */
+  --surface: 230 40% 8%;
+  --border: 230 30% 18%;
+  --muted: 230 10% 65%;
+  --fg: 0 0% 100%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html,
+body {
+  background-color: hsl(var(--bg));
+  color: hsl(var(--fg));
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:
+    "Inter",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tipografía gradient para titulares */
+.gradient-text-primary {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)),
+    hsl(var(--secondary))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Tarjetas con borde sutil y blur */
+.card {
+  background: hsl(var(--surface) / 0.6);
+  border: 1px solid hsl(var(--border));
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+}
+
+/* Scrollbar discreto */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}

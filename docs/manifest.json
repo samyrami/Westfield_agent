@@ -1,0 +1,59 @@
+{
+  "$schema": "./manifest.schema",
+  "name": "etsy",
+  "description": "Caso Etsy — primer contexto académico cargado en Maia. Ajusta este manifest cuando agregues nuevos docs o un nuevo caso.",
+  "docs": [
+    {
+      "file": "Prompt GEM Maia revisado.docx",
+      "title": "Prompt operativo de Maia (revisado)",
+      "tag": "operating_guide",
+      "always_include": true,
+      "chunk": false,
+      "instructor_only": false,
+      "description": "Define identidad, voz, dinámica socrática y reglas críticas de Maia. Se inyecta verbatim cada turno."
+    },
+    {
+      "file": "Rúbrica de Evaluación Maia.docx",
+      "title": "Rúbrica de evaluación",
+      "tag": "rubric",
+      "always_include": true,
+      "chunk": false,
+      "instructor_only": false,
+      "description": "5 niveles de desempeño. Maia la usa para asignar rubric_level y decidir advance_to_next_question."
+    },
+    {
+      "file": "Introspección personal caso Etsy.docx",
+      "title": "Preguntas de introspección",
+      "tag": "introspection",
+      "always_include": true,
+      "chunk": false,
+      "instructor_only": false,
+      "description": "Las 3 preguntas que Maia debe conducir en orden. Visible al estudiante."
+    },
+    {
+      "file": "Caso Etsy.pdf",
+      "title": "Caso académico Etsy",
+      "tag": "case",
+      "always_include": false,
+      "chunk": true,
+      "instructor_only": false,
+      "description": "Enunciado del caso (visible al estudiante). Se trocea y se recupera por similitud."
+    },
+    {
+      "file": "Nota del instructor caso Etsy.pdf",
+      "title": "Notas del instructor (privadas)",
+      "tag": "instructor_notes",
+      "always_include": false,
+      "chunk": true,
+      "instructor_only": true,
+      "description": "Vías de respuesta y reflexiones esperadas. PRIVADO — Maia las usa pero nunca las cita. El sanitizador anti-leak vigila esta categoría."
+    }
+  ],
+  "retrieval": {
+    "top_k": 4,
+    "min_similarity": 0.2,
+    "chunk_size_chars": 1400,
+    "chunk_overlap_chars": 200
+  },
+  "loader": "local"
+}

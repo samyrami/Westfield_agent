@@ -1,0 +1,48 @@
+{
+  "name": "westfield-agent-showcase",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n vite,server -c blue,green \"vite\" \"tsx watch server/index.ts\"",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:vite": "vite",
+    "typecheck": "tsc -b --noEmit",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "start": "tsx server/index.ts",
+    "ingest": "tsx scripts/ingest.ts",
+    "test:endpoint": "tsx scripts/test-endpoint.ts",
+    "bundle:lambda": "esbuild server/lambda.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist-lambda/index.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\""
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-tabs": "^1.1.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.11.17",
+    "hono": "^4.6.10",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "dotenv": "^16.4.5",
+    "esbuild": "^0.24.0",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
