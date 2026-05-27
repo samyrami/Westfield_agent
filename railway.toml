@@ -7,17 +7,16 @@
 #   - OPENAI_BASE_URL             (opcional; Azure/proxy)
 #
 # Railway inyecta PORT automáticamente — server/index.ts ya lo lee.
-#
-# El buildCommand corre `npm run ingest` para generar data/maia-index.json
-# (gitignored, no viene del repo) antes de compilar el front. Necesita
-# OPENAI_API_KEY como build-time variable en Railway.
+# Railway pasa las service Variables también como --build-arg al Dockerfile,
+# así que `npm run ingest` (dentro del builder stage) puede generar el
+# índice RAG durante el build. El secreto NO termina en la imagen final
+# porque vive sólo en el stage `builder` que se descarta.
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "npm ci && npm run ingest && npm run build"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"

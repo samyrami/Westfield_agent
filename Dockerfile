@@ -1,22 +1,31 @@
-# Imagen del backend Maia para AWS App Runner / ECS Fargate / cualquier
-# orquestador de containers que hable HTTP.
+# Imagen del backend Maia para Railway / AWS App Runner / ECS Fargate /
+# cualquier orquestador de containers que hable HTTP.
 #
 # Pre-condiciones (antes de `docker build`):
-#   1. Ya corriste `npm run ingest` y existe data/maia-index.json
-#      (ese archivo SÍ se copia al build context — ver .dockerignore).
-#   2. La OPENAI_API_KEY NO va al build, va en runtime como env var.
+#   1. Pasar OPENAI_API_KEY como build arg para que `npm run ingest`
+#      pueda generar data/maia-index.json durante el build:
+#        docker build --build-arg OPENAI_API_KEY=sk-... -t maia .
+#      (En Railway se inyecta automáticamente desde Variables.)
+#   2. OPENAI_API_KEY también va en runtime como env var.
 #
-# Build:    docker build -t maia .
-# Run:      docker run -p 8080:8080 --env-file .env.local maia
+# El secreto vive sólo en el stage `builder` y se descarta — la imagen
+# `runtime` final no lo contiene en sus layers.
+#
+# Run:      docker run -p 8080:8080 -e OPENAI_API_KEY=sk-... maia
 # Health:   curl http://localhost:8080/api/health
 #
 # Multi-stage:
-#   - builder: instala TODAS las deps, compila el front (dist/).
+#   - builder: instala TODAS las deps, corre ingest, compila el front.
 #   - runtime: sólo prod deps + tsx + artefactos. Imagen final ~200 MB.
 
 # ---------- builder ---------------------------------------------------
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Build args (Railway los inyecta desde service Variables).
+ARG OPENAI_API_KEY
+ARG OPENAI_EMBEDDING_MODEL
+ARG OPENAI_BASE_URL
 
 # Cache layer: si package.json no cambia, npm ci se reusa entre builds.
 COPY package.json package-lock.json* ./
@@ -25,15 +34,19 @@ RUN npm ci
 # Resto del código (.dockerignore controla qué entra al contexto).
 COPY . .
 
-# Pre-condición dura: el índice RAG tiene que estar pre-generado.
-# Falla temprano con mensaje útil si el usuario olvidó `npm run ingest`.
-RUN test -f data/maia-index.json || ( \
+# Genera data/maia-index.json desde docs/ usando embeddings de OpenAI.
+# Falla temprano si no llegó la key — sin RAG el showcase pierde gracia.
+RUN if [ -z "$OPENAI_API_KEY" ]; then \
       echo "" && \
-      echo "✗ Falta data/maia-index.json en el build context." && \
-      echo "  Corré 'npm run ingest' en el host antes de 'docker build'." && \
+      echo "✗ Falta OPENAI_API_KEY como --build-arg." && \
+      echo "  En Railway agregala en Settings → Variables." && \
       echo "" && \
-      exit 1 \
-    )
+      exit 1; \
+    fi && \
+    OPENAI_API_KEY=$OPENAI_API_KEY \
+    OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small} \
+    OPENAI_BASE_URL=$OPENAI_BASE_URL \
+    npm run ingest
 
 # Build del front estático → dist/
 RUN npm run build
