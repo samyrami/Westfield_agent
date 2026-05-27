@@ -5,6 +5,7 @@ export function LiveDemo() {
   return (
     <Section
       id="demo"
+      className="pt-32 md:pt-40"
       eyebrow="Maia en vivo"
       title={
         <>

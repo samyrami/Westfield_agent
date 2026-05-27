@@ -12,7 +12,7 @@ export function Nav() {
     <header className="fixed top-0 left-0 right-0 z-40 border-b border-border/50 bg-bg/70 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <a
-          href="#top"
+          href="#demo"
           className="flex items-center gap-3 font-semibold tracking-tight"
         >
           <img
