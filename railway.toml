@@ -1,0 +1,24 @@
+# Railway config — un solo servicio: Hono sirve dist/ + /api/maia.
+#
+# Variables que TIENEN que estar configuradas en Railway → Variables:
+#   - OPENAI_API_KEY              (obligatoria; se usa en build para ingest y en runtime)
+#   - OPENAI_MODEL                (opcional; default gpt-4o-mini)
+#   - OPENAI_EMBEDDING_MODEL      (opcional; default text-embedding-3-small)
+#   - OPENAI_BASE_URL             (opcional; Azure/proxy)
+#
+# Railway inyecta PORT automáticamente — server/index.ts ya lo lee.
+#
+# El buildCommand corre `npm run ingest` para generar data/maia-index.json
+# (gitignored, no viene del repo) antes de compilar el front. Necesita
+# OPENAI_API_KEY como build-time variable en Railway.
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm ci && npm run ingest && npm run build"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
