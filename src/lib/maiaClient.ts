@@ -1,7 +1,17 @@
 /**
  * Cliente del endpoint /api/maia.
  * Define los tipos compartidos con el server y un wrapper de fetch.
+ *
+ * Resolución de URL:
+ *   - Si VITE_API_BASE_URL está definida, usa <base>/api/maia (URL absoluto).
+ *     Útil cuando el front se hostea en otro origen que el backend
+ *     (S3/CloudFront/Netlify apuntando a una EC2 o App Runner).
+ *   - Si no, usa "/api/maia" relativo y se apoya en:
+ *       · el proxy de Vite en dev (configurado en vite.config.ts)
+ *       · el server Hono sirviendo dist/ en mismo origen en prod local.
  */
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const MAIA_URL = `${API_BASE}/api/maia`;
 
 export type MaiaRubricLevel =
   | "muy_pobre"
@@ -30,7 +40,7 @@ export async function askMaia(args: {
   studentInput: string;
   signal?: AbortSignal;
 }): Promise<MaiaResponse> {
-  const res = await fetch("/api/maia", {
+  const res = await fetch(MAIA_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
