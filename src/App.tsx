@@ -15,8 +15,8 @@ export default function App() {
       <Nav />
       <main className="relative z-10">
         <LiveDemo />
-        <WhatIsMaia />
         <CaseContext />
+        <WhatIsMaia />
         <HowItThinks />
       </main>
       <Footer />
