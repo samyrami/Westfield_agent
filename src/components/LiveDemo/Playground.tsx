@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   CircleAlert,
+  Download,
   Loader2,
   RotateCcw,
   Sparkles,
@@ -14,6 +15,8 @@ import {
   type FormEvent,
 } from "react";
 import { cn } from "@/lib/cn";
+import { SHOW_INTERNALS } from "@/lib/featureFlags";
+import { exportConversationToPdf } from "@/lib/exportPdf";
 import {
   askMaia,
   type MaiaRubricLevel,
@@ -21,7 +24,6 @@ import {
 } from "@/lib/maiaClient";
 import { ProgressBar } from "./ProgressBar";
 import { RubricBadge } from "./RubricBadge";
-import { SuggestionChips } from "./SuggestionChips";
 
 /**
  * Playground real conectado a /api/maia (OpenAI en el servidor).
@@ -39,6 +41,7 @@ export function Playground() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<1 | 2 | 3>(1);
+  const [turnsForCurrentQuestion, setTurnsForCurrentQuestion] = useState(0);
   const [rubric, setRubric] = useState<MaiaRubricLevel | null>(null);
   const [isFinal, setIsFinal] = useState(false);
   const [unresolved, setUnresolved] = useState<string[]>([]);
@@ -72,10 +75,18 @@ export function Playground() {
       : [...messages, { role: "student", content: text }];
     if (!opts.initial) setMessages(newHistory);
 
+    // Contador de intercambios sobre la pregunta activa. Lo manda el cliente
+    // y el backend lo usa para decidir avance/cierre forzado.
+    const nextTurnsForCurrentQuestion = opts.initial
+      ? 0
+      : turnsForCurrentQuestion + 1;
+
     try {
       const resp = await askMaia({
         history: opts.initial ? [] : messages,
         studentInput: opts.initial ? "" : text,
+        currentQuestion,
+        turnsForCurrentQuestion: nextTurnsForCurrentQuestion,
       });
 
       setIsFallback(Boolean(resp.fallback));
@@ -85,8 +96,10 @@ export function Playground() {
 
       if (resp.advance_to_next_question && currentQuestion < 3) {
         setCurrentQuestion((q) => (q < 3 ? ((q + 1) as 1 | 2 | 3) : q));
-      } else if (resp.current_question) {
-        setCurrentQuestion(resp.current_question);
+        setTurnsForCurrentQuestion(0);
+      } else {
+        if (resp.current_question) setCurrentQuestion(resp.current_question);
+        setTurnsForCurrentQuestion(nextTurnsForCurrentQuestion);
       }
 
       setMessages([
@@ -117,6 +130,7 @@ export function Playground() {
     setInput("");
     setError(null);
     setCurrentQuestion(1);
+    setTurnsForCurrentQuestion(0);
     setRubric(null);
     setIsFinal(false);
     setUnresolved([]);
@@ -128,16 +142,9 @@ export function Playground() {
     });
   }
 
-  function handlePickSuggestion(text: string) {
-    setInput(text);
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-      // Posiciona el cursor al final
-      const el = inputRef.current;
-      if (el) {
-        el.setSelectionRange(text.length, text.length);
-      }
-    });
+  function handleDownload() {
+    if (messages.length === 0) return;
+    exportConversationToPdf(messages);
   }
 
   const helperText = useMemo(() => {
@@ -150,7 +157,7 @@ export function Playground() {
   return (
     <div className="card flex h-[640px] flex-col overflow-hidden">
       <div className="border-b border-border bg-surface/40 px-5 py-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className={cn("flex items-center justify-between gap-3", SHOW_INTERNALS && "mb-3")}>
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-primary text-bg shadow-glow">
               <Sparkles className="h-4 w-4" />
@@ -166,9 +173,21 @@ export function Playground() {
               </div>
             </div>
           </div>
-          <RubricBadge level={rubric} />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={messages.length === 0}
+              title="Descargar conversación en PDF"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-fg/90 transition-colors hover:bg-surface hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Descargar PDF</span>
+            </button>
+            {SHOW_INTERNALS && <RubricBadge level={rubric} />}
+          </div>
         </div>
-        <ProgressBar current={currentQuestion} isFinal={isFinal} />
+        {SHOW_INTERNALS && <ProgressBar current={currentQuestion} isFinal={isFinal} />}
       </div>
 
       <div
@@ -252,17 +271,6 @@ export function Playground() {
         onSubmit={handleSubmit}
         className="border-t border-border bg-surface/40 px-5 py-3"
       >
-        {/* Chips de sugerencia, contextuales a la pregunta actual */}
-        {!isFinal && (
-          <div className="mb-3">
-            <SuggestionChips
-              currentQuestion={currentQuestion}
-              disabled={busy}
-              onPick={handlePickSuggestion}
-            />
-          </div>
-        )}
-
         <div className="mb-2 flex items-center justify-between text-[11px] text-muted">
           <span>{helperText}</span>
           <button

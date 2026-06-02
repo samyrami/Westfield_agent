@@ -38,6 +38,8 @@ export interface MaiaResponse {
 export async function askMaia(args: {
   history: MaiaTurn[];
   studentInput: string;
+  currentQuestion?: 1 | 2 | 3;
+  turnsForCurrentQuestion?: number;
   signal?: AbortSignal;
 }): Promise<MaiaResponse> {
   const res = await fetch(MAIA_URL, {
@@ -46,6 +48,8 @@ export async function askMaia(args: {
     body: JSON.stringify({
       history: args.history,
       studentInput: args.studentInput,
+      currentQuestion: args.currentQuestion,
+      turnsForCurrentQuestion: args.turnsForCurrentQuestion,
     }),
     signal: args.signal,
   });

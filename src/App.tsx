@@ -6,6 +6,7 @@ import { CaseContext } from "@/components/CaseContext";
 import { LiveDemo } from "@/components/LiveDemo";
 import { HowItThinks } from "@/components/HowItThinks";
 import { Footer } from "@/components/Footer";
+import { SHOW_INTERNALS } from "@/lib/featureFlags";
 
 export default function App() {
   return (
@@ -17,7 +18,7 @@ export default function App() {
         <LiveDemo />
         <CaseContext />
         <WhatIsMaia />
-        <HowItThinks />
+        {SHOW_INTERNALS && <HowItThinks />}
       </main>
       <Footer />
     </div>

@@ -52,7 +52,19 @@ export interface MaiaResponse {
 export interface MaiaRequestBody {
   history: MaiaTurn[];
   studentInput: string;
+  /** Pregunta de introspección activa según el cliente (1, 2 o 3). Default 1. */
+  currentQuestion?: 1 | 2 | 3;
+  /**
+   * Cantidad de intercambios estudiante↔Maia ya completados sobre la
+   * pregunta activa, incluyendo el envío actual. Lo manda el frontend
+   * para que el modelo lo use en la "Dinámica de avance" del system prompt.
+   * Default 0.
+   */
+  turnsForCurrentQuestion?: number;
 }
+
+/** Umbral duro: si el modelo no avanza tras este número de intercambios, el backend fuerza el avance. */
+const FORCE_ADVANCE_AT = 5;
 
 export interface MaiaEnv {
   OPENAI_API_KEY?: string;
@@ -92,6 +104,11 @@ export async function askMaia(
 ): Promise<MaiaResponse> {
   const history = Array.isArray(body.history) ? body.history.slice(-30) : [];
   const studentInput = (body.studentInput ?? "").toString().slice(0, 4000);
+  const currentQuestion = clampQuestion(body.currentQuestion ?? 1);
+  const turnsForCurrentQuestion = Math.max(
+    0,
+    Math.floor(Number(body.turnsForCurrentQuestion ?? 0)),
+  );
 
   const fullHistory: MaiaTurn[] = studentInput
     ? [...history, { role: "student", content: studentInput }]
@@ -115,11 +132,24 @@ export async function askMaia(
       studentInput,
       alwaysIncludeDocs: env.alwaysIncludeDocs ?? [],
       retrievedChunks,
+      turnState: { currentQuestion, turnsForCurrentQuestion },
     });
 
     if (looksLikeNotesLeak(result.message)) {
       result.message =
         "No puedo compartir el material interno del instructor. Volvamos a tu argumento: ¿qué evidencia concreta del caso lo sostiene?";
+    }
+
+    // Red de seguridad: si el modelo no avanzó pese a llevar FORCE_ADVANCE_AT
+    // intercambios sobre la misma pregunta, lo forzamos. Si ya estamos en la
+    // pregunta 3 también forzamos el cierre con resumen.
+    if (turnsForCurrentQuestion >= FORCE_ADVANCE_AT) {
+      if (currentQuestion < 3 && !result.advance_to_next_question) {
+        result.advance_to_next_question = true;
+      }
+      if (currentQuestion === 3 && !result.is_final_summary) {
+        result.is_final_summary = true;
+      }
     }
 
     return result;
@@ -164,6 +194,10 @@ interface CallArgs {
   studentInput: string;
   alwaysIncludeDocs: AlwaysIncludeDoc[];
   retrievedChunks: RetrievedChunk[];
+  turnState: {
+    currentQuestion: 1 | 2 | 3;
+    turnsForCurrentQuestion: number;
+  };
 }
 
 interface OpenAIChatMessage {
@@ -180,11 +214,13 @@ async function callOpenAI(args: CallArgs): Promise<MaiaResponse> {
     studentInput,
     alwaysIncludeDocs,
     retrievedChunks,
+    turnState,
   } = args;
 
   const systemPrompt = buildSystemPrompt({
     alwaysIncludeDocs,
     retrievedChunks,
+    turnState,
   });
 
   const messages: OpenAIChatMessage[] = [

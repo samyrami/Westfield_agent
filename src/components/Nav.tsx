@@ -1,11 +1,15 @@
 import { motion } from "framer-motion";
+import { SHOW_INTERNALS } from "@/lib/featureFlags";
 
-const NAV_ITEMS = [
-  { label: "Qué es Maia", href: "#about" },
-  { label: "El caso", href: "#case" },
+const BASE_NAV_ITEMS = [
   { label: "Probar Maia", href: "#demo" },
-  { label: "Cómo piensa", href: "#methodology" },
+  { label: "El caso", href: "#case" },
+  { label: "Qué es Maia", href: "#about" },
 ];
+
+const NAV_ITEMS = SHOW_INTERNALS
+  ? [...BASE_NAV_ITEMS, { label: "Cómo piensa", href: "#methodology" }]
+  : BASE_NAV_ITEMS;
 
 export function Nav() {
   return (
