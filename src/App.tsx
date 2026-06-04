@@ -7,8 +7,12 @@ import { LiveDemo } from "@/components/LiveDemo";
 import { HowItThinks } from "@/components/HowItThinks";
 import { Footer } from "@/components/Footer";
 import { SHOW_INTERNALS } from "@/lib/featureFlags";
+import { useDisableZoom } from "@/lib/useDisableZoom";
 
 export default function App() {
+  // Bloquea cualquier zoom del navegador (Cmd+/-, pinch, ctrl+scroll)
+  useDisableZoom();
+
   return (
     <div className="relative min-h-screen bg-bg text-fg font-sans antialiased overflow-x-hidden">
       <BackgroundOrbs />

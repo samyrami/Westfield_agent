@@ -43,7 +43,7 @@ export function Nav() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           href="#demo"
-          className="rounded-full bg-gradient-primary px-4 py-2 text-sm font-medium text-bg shadow-glow"
+          className="rounded-full bg-gradient-warm px-4 py-2 text-sm font-semibold text-navy shadow-glow-gold"
         >
           Probar Maia
         </motion.a>

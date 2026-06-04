@@ -69,8 +69,8 @@ function Diagram() {
     >
       <defs>
         <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="hsl(211 62% 51%)" />
-          <stop offset="100%" stopColor="hsl(78 56% 51%)" />
+          <stop offset="0%" stopColor="hsl(242 73% 63%)" />
+          <stop offset="100%" stopColor="hsl(170 77% 64%)" />
         </linearGradient>
         <marker
           id="arrow"
@@ -81,7 +81,7 @@ function Diagram() {
           markerHeight="6"
           orient="auto"
         >
-          <path d="M0,0 L10,5 L0,10 z" fill="hsl(211 62% 65%)" />
+          <path d="M0,0 L10,5 L0,10 z" fill="hsl(242 88% 73%)" />
         </marker>
       </defs>
 
@@ -109,7 +109,7 @@ function Diagram() {
       <Arrow from={[360, 290]} to={[120, 290]} dashed loop />
 
       {/* Etiquetas */}
-      <text x="240" y="332" fontSize="11" fill="hsl(78 56% 60%)" textAnchor="middle">
+      <text x="240" y="332" fontSize="11" fill="hsl(170 77% 66%)" textAnchor="middle">
         Si Superior → siguiente pregunta de introspección
       </text>
     </svg>
@@ -135,8 +135,8 @@ function Node({ x, y, w, h, title, sub, accent }: NodeProps) {
         width={w}
         height={h}
         rx={12}
-        fill="hsl(230 40% 8% / 0.8)"
-        stroke={accent ? "url(#grad)" : "hsl(230 30% 25%)"}
+        fill="hsl(222 45% 11% / 0.85)"
+        stroke={accent ? "url(#grad)" : "hsl(222 32% 30%)"}
         strokeWidth={accent ? 1.5 : 1}
       />
       <text
@@ -154,7 +154,7 @@ function Node({ x, y, w, h, title, sub, accent }: NodeProps) {
           x={x + w / 2}
           y={y + 38}
           fontSize="10"
-          fill="hsl(230 10% 65%)"
+          fill="hsl(220 24% 72%)"
           textAnchor="middle"
         >
           {sub}
@@ -180,7 +180,7 @@ function Arrow({ from, to, dashed, loop }: ArrowProps) {
   return (
     <path
       d={path}
-      stroke="hsl(211 62% 65%)"
+      stroke="hsl(242 88% 73%)"
       strokeWidth={1.5}
       fill="none"
       strokeDasharray={dashed ? "4 4" : undefined}
