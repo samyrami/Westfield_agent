@@ -3,20 +3,25 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   Sistema de diseño Westfield
-   Paleta tomada del sitio original westfield.crearia.co
+   Sistema de diseño Westfield × Replika
+   Marca real de Westfield Business School (westfield.edu): navy #011640,
+   dorado #D98E04, acentos índigo #605BE5 y teal #5EEAD4, titulares en Sora.
+   Sensación Replika: cálida, suave, redondeada, soñadora (twilight).
    ========================================================================== */
 :root {
   /* Marca */
-  --primary: 211 62% 51%;        /* azul Westfield ~ #2B7BC4 */
-  --primary-glow: 211 62% 65%;
-  --secondary: 78 56% 51%;       /* verde lima ~ #9ACA3C */
+  --navy: 220 97% 13%;           /* azul Westfield #011640 (ancla de marca) */
+  --primary: 242 73% 63%;        /* índigo/violeta #605BE5 */
+  --primary-glow: 242 88% 73%;   /* índigo claro para halos */
+  --secondary: 170 77% 64%;      /* teal #5EEAD4 */
+  --gold: 39 96% 43%;            /* dorado cálido #D98E04 (CTA Westfield) */
+  --gold-glow: 39 95% 58%;
 
-  /* Superficies */
-  --bg: 230 100% 4%;             /* #030014 */
-  --surface: 230 40% 8%;
-  --border: 230 30% 18%;
-  --muted: 230 10% 65%;
+  /* Superficies — twilight navy soñador */
+  --bg: 223 65% 6%;              /* navy nocturno profundo */
+  --surface: 222 45% 11%;
+  --border: 222 32% 22%;
+  --muted: 220 24% 72%;
   --fg: 0 0% 100%;
 }
 
@@ -32,6 +37,13 @@ body {
 }
 
 body {
+  /* Aura índigo difusa desde arriba — profundidad soñadora bajo los orbes */
+  background-image: radial-gradient(
+    125% 80% at 50% -15%,
+    hsl(242 60% 15% / 0.65),
+    transparent 60%
+  );
+  background-attachment: fixed;
   font-family:
     "Inter",
     ui-sans-serif,
@@ -43,11 +55,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Tipografía gradient para titulares */
+/* Titulares en Sora (fuente de marca Westfield) */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Tipografía gradient para titulares — índigo → teal soñador */
 .gradient-text-primary {
   background: linear-gradient(
-    90deg,
-    hsl(var(--primary)),
+    100deg,
+    hsl(var(--primary-glow)),
     hsl(var(--secondary))
   );
   -webkit-background-clip: text;
@@ -56,15 +80,24 @@ body {
   color: transparent;
 }
 
-/* Tarjetas con borde sutil y blur */
-.card {
-  background: hsl(var(--surface) / 0.6);
-  border: 1px solid hsl(var(--border));
-  backdrop-filter: blur(12px);
-  border-radius: 1rem;
+/* Realce cálido (dorado) para acentos puntuales */
+.gradient-text-warm {
+  background: linear-gradient(100deg, hsl(var(--gold-glow)), hsl(var(--gold)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
-/* Scrollbar discreto */
+/* Tarjetas: vidrio suave, esquinas generosas (lenguaje Replika) */
+.card {
+  background: hsl(var(--surface) / 0.55);
+  border: 1px solid hsl(var(--border) / 0.8);
+  backdrop-filter: blur(16px);
+  border-radius: 1.5rem;
+}
+
+/* Scrollbar discreto, tinte índigo */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -73,9 +106,26 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: hsl(var(--primary) / 0.35);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.6);
+}
+
+/* Puntos animados del indicador "pensando" (estilo mensajería) */
+@keyframes maia-typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+.maia-typing-dot {
+  animation: maia-typing 1.2s infinite ease-in-out;
 }

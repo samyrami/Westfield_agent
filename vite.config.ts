@@ -19,7 +19,24 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        // Shim del builtin `util` de Node: visage lee util.inspect.custom al
+        // importar y en el browser quedaría undefined (rompe el avatar 3D).
+        util: path.resolve(__dirname, "./src/shims/util.ts"),
       },
+    },
+    // Pre-bundle el stack 3D (three/drei/visage) para dev rápido
+    optimizeDeps: {
+      include: [
+        "three",
+        "@react-three/fiber",
+        "@react-three/drei",
+        "@react-three/postprocessing",
+        "@readyplayerme/visage",
+      ],
+    },
+    build: {
+      // three + drei superan legítimamente el límite default de 500KB
+      chunkSizeWarningLimit: 1600,
     },
     server: {
       port: 5173,

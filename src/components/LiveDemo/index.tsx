@@ -14,9 +14,7 @@ export function LiveDemo() {
       }
       description="Esto no es un mock: la respuesta la genera el modelo en tiempo real. Empezás con la primera pregunta de introspección sobre el caso Etsy de Mariola Onetti. Si te quedás sin ideas, las sugerencias debajo del chat te dan un punto de partida."
     >
-      <div className="mx-auto max-w-3xl">
-        <Playground />
-      </div>
+      <Playground />
     </Section>
   );
 }
