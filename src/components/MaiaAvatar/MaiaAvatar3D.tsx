@@ -21,18 +21,11 @@ const ANIMATION_SRC = import.meta.env.VITE_MAIA_AVATAR_ANIMATION || undefined;
 // (que es incompatible con este avatar). Aplica sólo si no hay animationSrc.
 const POSE_SRC = import.meta.env.VITE_MAIA_AVATAR_POSE || "/avatars/pose.glb";
 
-/** Morph targets ARKit por estado (nombres L/R correctos). Sutil > exagerado. */
-const BASE_EMOTION: Record<AvatarState, Record<string, number>> = {
-  idle: { mouthSmileLeft: 0.14, mouthSmileRight: 0.14 },
-  thinking: {
-    browInnerUp: 0.4,
-    eyeLookUpLeft: 0.16,
-    eyeLookUpRight: 0.16,
-    mouthPucker: 0.1,
-  },
-  talking: { mouthSmileLeft: 0.18, mouthSmileRight: 0.18, browInnerUp: 0.08 },
-};
-
+/**
+ * Este avatar NO trae los blendshapes ARKit con nombre (sus morphs son numéricos),
+ * pero SÍ expone dos útiles: `eye_close` (parpadeo) y `eye_look_up` (mirada arriba).
+ * Con esos dos damos vida facial: parpadeo natural + mirada pensativa al "pensar".
+ */
 export default function MaiaAvatar3D({
   state,
   onReady,
@@ -40,35 +33,42 @@ export default function MaiaAvatar3D({
   state: AvatarState;
   onReady?: () => void;
 }) {
-  const [jaw, setJaw] = useState(0);
   const [blink, setBlink] = useState(false);
+  const [gaze, setGaze] = useState(0);
 
-  // Boca animada sólo mientras "habla" (movimiento, no audio).
-  useEffect(() => {
-    if (state !== "talking") {
-      setJaw(0);
-      return;
-    }
-    const id = setInterval(() => setJaw(0.05 + Math.random() * 0.28), 110);
-    return () => clearInterval(id);
-  }, [state]);
-
-  // Parpadeo procedural: cada 2.5–5.5s, un blink corto.
+  // Parpadeo real (morph "eye_close"). Más frecuente mientras piensa.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     const loop = () => {
       setBlink(true);
-      setTimeout(() => setBlink(false), 120);
-      timer = setTimeout(loop, 2500 + Math.random() * 3000);
+      setTimeout(() => setBlink(false), 110);
+      const gap =
+        state === "thinking"
+          ? 1200 + Math.random() * 1400
+          : 2800 + Math.random() * 3200;
+      timer = setTimeout(loop, gap);
     };
-    timer = setTimeout(loop, 1800);
+    timer = setTimeout(loop, 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [state]);
+
+  // Al "pensar": la mirada sube y baja suavemente (pensativa, como recordando).
+  useEffect(() => {
+    if (state !== "thinking") {
+      setGaze(0);
+      return;
+    }
+    let t = 0;
+    const id = setInterval(() => {
+      t += 0.4;
+      setGaze(0.35 + 0.25 * Math.sin(t)); // oscila ~0.1–0.6
+    }, 90);
+    return () => clearInterval(id);
+  }, [state]);
 
   const emotion: Record<string, number> = {
-    ...BASE_EMOTION[state],
-    ...(blink ? { eyeBlinkLeft: 1, eyeBlinkRight: 1 } : {}),
-    ...(state === "talking" ? { jawOpen: jaw } : {}),
+    ...(blink ? { eye_close: 1 } : {}),
+    ...(gaze > 0 ? { eye_look_up: gaze } : {}),
   };
 
   return (

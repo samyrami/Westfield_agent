@@ -53,6 +53,11 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-7px)" },
         },
+        // Balanceo sutil de cabeza/cuerpo mientras "piensa"
+        pondering: {
+          "0%, 100%": { transform: "rotate(-1deg)" },
+          "50%": { transform: "rotate(1deg)" },
+        },
         breathe: {
           "0%, 100%": { transform: "scale(1)", opacity: "0.9" },
           "50%": { transform: "scale(1.04)", opacity: "1" },
@@ -81,6 +86,7 @@ export default {
       animation: {
         float: "float 7s ease-in-out infinite",
         "float-soft": "float-soft 6s ease-in-out infinite",
+        pondering: "pondering 3.4s ease-in-out infinite",
         breathe: "breathe 4s ease-in-out infinite",
         "drift-a": "drift-a 9s ease-in-out infinite",
         "drift-b": "drift-b 12s ease-in-out infinite",

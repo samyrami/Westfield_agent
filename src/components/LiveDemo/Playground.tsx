@@ -229,7 +229,14 @@ export function Playground() {
               recorta los lados, nunca aparece el cuerpo entero. */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
             <div className="aspect-[3/4] h-full w-auto animate-float-soft">
-              <MaiaAvatar state={avatarState} className="h-full w-full" />
+              <div
+                className={cn(
+                  "h-full w-full",
+                  avatarState === "thinking" && "animate-pondering",
+                )}
+              >
+                <MaiaAvatar state={avatarState} className="h-full w-full" />
+              </div>
             </div>
           </div>
           {/* Badge nombre + estado */}
