@@ -211,8 +211,13 @@ app.post("/api/maia", async (c) => {
 // donde el front lo sirve Vite y nunca se corrió `npm run build`.
 import { existsSync } from "node:fs";
 if (SERVE_STATIC && existsSync("./dist/index.html")) {
-  app.use("/assets/*", serveStatic({ root: "./dist" }));
-  app.use("/favicon.svg", serveStatic({ path: "./dist/favicon.svg" }));
+  // Sirve TODO lo que vive en dist/ (vite copia el contenido de public/ a la
+  // raíz: /avatars/*, /favicon.svg, etc.; y los chunks compilados quedan en
+  // /assets/*). serveStatic delega al next handler cuando el archivo no
+  // existe, así que las rutas de SPA caen en el catch-all de abajo.
+  app.use("/*", serveStatic({ root: "./dist" }));
+  // SPA fallback: cualquier ruta que no resolvió a un archivo físico devuelve
+  // index.html para que React Router (o el navegador) maneje el routing.
   app.get("*", serveStatic({ path: "./dist/index.html" }));
 }
 
