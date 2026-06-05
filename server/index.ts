@@ -36,6 +36,24 @@ import { loadIndexFromDisk } from "./rag/index-loader";
 import { buildRetriever } from "./rag/runtime";
 import type { AlwaysIncludeDoc, RagIndex, RetrieveFn } from "./rag/types";
 
+/* ------------------------------------------------------------------ */
+/* Visibilidad de crashes silenciosos                                  */
+/* ------------------------------------------------------------------ */
+
+// Sin estos handlers, una promesa rechazada o un throw en una callback
+// asincrónica termina muriendo el proceso sin imprimir nada útil a stderr —
+// y `concurrently` (usado por `npm run dev:both`) no surfacea esos crashes
+// al stdout combinado. Resultado: el [server] no aparece y el dev cree que
+// arrancó cuando en realidad murió.
+process.on("uncaughtException", (err) => {
+  console.error("✗ uncaughtException:", err);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("✗ unhandledRejection:", reason);
+  process.exit(1);
+});
+
 const PORT = Number(process.env.PORT ?? 3001);
 const SERVE_STATIC = process.env.SERVE_STATIC !== "false";
 
@@ -68,7 +86,7 @@ async function initRag(): Promise<void> {
     );
   } catch (err) {
     console.warn(
-      "⚠ No se pudo cargar data/maia-index.json — Maia arranca SIN RAG.\n  Corre `npm run ingest` para generar el índice. Detalle:",
+      "✗ RAG no cargó — Maia arranca SIN índice (data/maia-index.json).\n  Corre `npm run ingest` para generar el índice. Detalle:",
       err instanceof Error ? err.message : err,
     );
   }
@@ -208,9 +226,14 @@ if (SERVE_STATIC && existsSync("./dist/index.html")) {
 // `alwaysIncludeDocs` cada vez, así que se enganchan al RAG cuando termine).
 function boot(): void {
   initRag().catch((err) =>
-    console.error("initRag rechazó (no debería pasar):", err),
+    console.error("✗ initRag rechazó (no debería pasar):", err),
   );
-  serve(
+  // `serve()` retorna el `net.Server` subyacente. El evento "error" se emite
+  // asincrónicamente (EADDRINUSE, EACCES, etc.) — sin un listener acá esos
+  // crashes terminan como "unhandled 'error' event" y mueren con la traza
+  // estándar de Node, que `concurrently` suele silenciar. Lo enganchamos
+  // explícitamente para que el motivo del crash quede en una línea visible.
+  const httpServer = serve(
     {
       fetch: app.fetch,
       port: PORT,
@@ -237,6 +260,17 @@ function boot(): void {
       // estado intermedio "todavía cargando".
     },
   );
+  httpServer.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `✗ Server crash: puerto ${PORT} ocupado. ` +
+          `Matá el proceso (npm run dev:reset) y reintentá.`,
+      );
+    } else {
+      console.error("✗ Server crash:", err);
+    }
+    process.exit(1);
+  });
 }
 
 try {

@@ -15,15 +15,21 @@ npm install
 cp .env.example .env.local            # rellena OPENAI_API_KEY (no usar prefix VITE_)
 
 npm run ingest                        # parsea docs/ → data/maia-index.json (RAG)
-npm run dev                           # Vite (5173) + Hono (3001) en paralelo, con HMR
-npm run dev:vite                      # solo el front
-npm run dev:server                    # solo el server
+npm run dev                           # solo Vite (5173)
+npm run dev:vite                      # solo el front (alias de dev)
+npm run dev:server                    # solo el server Hono (3001)
+npm run dev:both                      # Vite + Hono en paralelo (concurrently --raw --kill-others-on-fail)
+npm run dev:reset                     # mata todos los node.exe y reporta puertos 3001/5173
 npm run typecheck                     # tsc -b --noEmit
 npm run build                         # tsc -b && vite build → dist/
 npm start                             # tsx server/index.ts contra dist/ (prod local en 3001)
 npm run test:endpoint                 # smoke test contra http://localhost:3001/api/maia
 npm run bundle:lambda                 # esbuild server/lambda.ts → dist-lambda/index.mjs
 ```
+
+`dev:both` usa `concurrently --raw` porque sin ese flag, en Windows el stdio del child `tsx watch` se pierde y el log del Hono no aparece nunca (síntoma típico: ves solo el banner de Vite y el chat tira 500). El `--raw` cede los prefijos `[vite]`/`[server]` pero los logs siguen siendo distinguibles por sus marcadores propios (`🟢 Maia server listening`, `🧠 RAG cargado`, errores con `✗`).
+
+Si el chat tira 500 igual, lo más común en Windows es un node zombie ocupando el 3001 — `npm run dev:reset` los mata y verifica los puertos. Para debug profundo: arrancar `npm run dev:server` solo (en su terminal) y `npm run dev:vite` en otra, así el output queda separado.
 
 Sin framework de tests unitarios. La verificación funcional es: `npm run typecheck`, `npm run test:endpoint` (cubre apertura + 2 turnos), y prueba manual del playground en el navegador (ver [TESTING.md](TESTING.md) §4–5 para casuística — apertura, follow-up socrático, avance entre las 3 preguntas, anti-jailbreak, rate limit 429).
 

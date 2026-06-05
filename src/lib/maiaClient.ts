@@ -55,8 +55,13 @@ export async function askMaia(args: {
   });
 
   if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`Maia ${res.status}: ${errBody.slice(0, 200)}`);
+    const errBody = (await res.text()).trim();
+    const detail =
+      errBody.slice(0, 200) ||
+      (res.status >= 500
+        ? "el backend no respondió (¿está corriendo el server Hono en 3001?)"
+        : "sin detalle");
+    throw new Error(`Maia ${res.status}: ${detail}`);
   }
 
   return (await res.json()) as MaiaResponse;
