@@ -24,15 +24,9 @@ export default defineConfig(({ mode }) => {
         util: path.resolve(__dirname, "./src/shims/util.ts"),
       },
     },
-    // Pre-bundle el stack 3D (three/drei/visage) para dev rápido
+    // Pre-bundle de three para dev rápido (el avatar ya no usa visage/fiber)
     optimizeDeps: {
-      include: [
-        "three",
-        "@react-three/fiber",
-        "@react-three/drei",
-        "@react-three/postprocessing",
-        "@readyplayerme/visage",
-      ],
+      include: ["three"],
     },
     build: {
       // three + drei superan legítimamente el límite default de 500KB

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maia — Avatar interactivo · Westfield Business School</title>
+  <style>
+    :root {
+      --navy: 220 97% 13%;
+      --primary: 242 73% 63%;
+      --primary-glow: 242 88% 73%;
+      --secondary: 170 77% 64%;
+      --gold: 39 96% 43%;
+      --bg: 223 65% 6%;
+      --surface: 222 45% 11%;
+      --border: 222 32% 22%;
+      --muted: 220 24% 72%;
+      --fg: 0 0% 100%;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background-color: hsl(var(--bg));
+      color: hsl(var(--fg));
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      /* Aura índigo difusa — mismo lenguaje visual del showcase */
+      background-image:
+        radial-gradient(90% 70% at 50% 0%, hsl(242 60% 15% / 0.7), transparent 65%),
+        radial-gradient(70% 50% at 50% 105%, hsl(170 60% 12% / 0.45), transparent 70%);
+    }
+
+    #escena { position: fixed; inset: 0; display: block; cursor: grab; }
+    #escena.agarrando { cursor: grabbing; }
+    #escena.tocable { cursor: pointer; }
+
+    /* ---- Cabecera ---- */
+    .cabecera {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 1.4rem;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .marca { display: flex; align-items: center; gap: .7rem; }
+    .marca .orbe {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+      box-shadow: 0 0 24px hsl(var(--primary) / .55);
+      animation: respira 4.2s ease-in-out infinite;
+    }
+    @keyframes respira { 0%,100% { transform: scale(1) } 50% { transform: scale(1.07) } }
+    .marca h1 { font-size: 1rem; font-weight: 600; letter-spacing: .01em; }
+    .marca p { font-size: .74rem; color: hsl(var(--muted)); margin-top: .1rem; }
+    .estado-chip {
+      font-size: .72rem; color: hsl(var(--secondary));
+      border: 1px solid hsl(var(--secondary) / .35);
+      background: hsl(var(--surface) / .7);
+      backdrop-filter: blur(8px);
+      padding: .3rem .7rem; border-radius: 999px;
+      transition: color .3s, border-color .3s;
+    }
+    .estado-chip.pensando { color: hsl(var(--primary-glow)); border-color: hsl(var(--primary) / .45); }
+    .estado-chip.hablando { color: hsl(var(--gold)); border-color: hsl(var(--gold) / .45); }
+
+    /* ---- Panel de controles ---- */
+    .panel {
+      position: fixed; left: 50%; bottom: 1.1rem; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: .55rem;
+      z-index: 10; width: min(94vw, 760px);
+    }
+    .fila { display: flex; flex-wrap: wrap; justify-content: center; gap: .45rem; }
+    .panel button {
+      font: inherit; font-size: .8rem; font-weight: 500;
+      color: hsl(var(--fg) / .92);
+      background: hsl(var(--surface) / .72);
+      border: 1px solid hsl(var(--border));
+      backdrop-filter: blur(10px);
+      padding: .48rem .95rem; border-radius: 999px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
+    }
+    .panel button:hover {
+      border-color: hsl(var(--primary) / .8);
+      background: hsl(var(--primary) / .18);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 18px hsl(var(--primary) / .25);
+    }
+    .panel button:active { transform: translateY(0) scale(.97); }
+    .panel button.activo {
+      border-color: hsl(var(--secondary) / .8);
+      background: hsl(var(--secondary) / .16);
+      color: hsl(var(--secondary));
+    }
+    .pista {
+      font-size: .7rem; color: hsl(var(--muted) / .85);
+      text-align: center;
+      background: hsl(var(--bg) / .45);
+      padding: .25rem .8rem; border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+
+    /* ---- Burbuja de reacción ---- */
+    #burbuja {
+      position: fixed; z-index: 9;
+      font-size: .8rem; font-weight: 500;
+      color: hsl(var(--fg));
+      background: hsl(var(--surface) / .85);
+      border: 1px solid hsl(var(--primary) / .5);
+      backdrop-filter: blur(10px);
+      padding: .4rem .85rem; border-radius: 1rem 1rem 1rem .25rem;
+      box-shadow: 0 6px 24px hsl(var(--primary) / .25);
+      opacity: 0; transform: translateY(6px) scale(.92);
+      transition: opacity .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+      max-width: 240px;
+    }
+    #burbuja.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+    /* ---- Pantalla de carga ---- */
+    #carga {
+      position: fixed; inset: 0; z-index: 20;
+      display: grid; place-items: center;
+      background: hsl(var(--bg));
+      transition: opacity .6s ease;
+    }
+    #carga.oculto { opacity: 0; pointer-events: none; }
+    .carga-inner { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
+    .carga-orbe {
+      width: 74px; height: 74px; border-radius: 50%;
+      background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+      box-shadow: 0 0 60px hsl(var(--primary) / .6);
+      animation: respira 1.8s ease-in-out infinite;
+    }
+    .carga-texto { font-size: .85rem; color: hsl(var(--muted)); }
+    .carga-barra {
+      width: 180px; height: 3px; border-radius: 999px;
+      background: hsl(var(--border) / .6); overflow: hidden;
+    }
+    .carga-barra > div {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)));
+      border-radius: 999px;
+      transition: width .3s ease;
+    }
+    #carga .error { color: hsl(0 70% 70%); font-size: .8rem; max-width: 320px; text-align: center; line-height: 1.5; }
+
+    @media (max-width: 560px) {
+      .marca p { display: none; }
+      .pista { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="escena"></canvas>
+
+  <header class="cabecera">
+    <div class="marca">
+      <div class="orbe"></div>
+      <div>
+        <h1>Maia</h1>
+        <p>Avatar interactivo · Westfield Business School</p>
+      </div>
+    </div>
+    <div class="estado-chip" id="chip-estado">en reposo</div>
+  </header>
+
+  <div id="burbuja"></div>
+
+  <div class="panel">
+    <div class="fila" id="fila-reacciones">
+      <button data-reaccion="saludar">Saludar</button>
+      <button data-reaccion="asentir">Asentir</button>
+      <button data-reaccion="negar">Negar</button>
+      <button data-reaccion="sorpresa">Sorpresa</button>
+      <button data-reaccion="encogerse">No sé…</button>
+      <button data-reaccion="celebrar">Celebrar</button>
+    </div>
+    <div class="fila" id="fila-estados">
+      <button data-estado="idle" class="activo">Reposo</button>
+      <button data-estado="thinking">Pensando</button>
+      <button data-estado="talking">Hablando</button>
+      <button id="btn-vida" class="activo">Vida propia</button>
+    </div>
+    <div class="pista">Mueve el cursor y Maia te sigue con la mirada · haz clic en su cabeza, hombros o cuerpo · arrastra para orbitar</div>
+  </div>
+
+  <div id="carga">
+    <div class="carga-inner">
+      <div class="carga-orbe"></div>
+      <div class="carga-texto" id="carga-texto">Cargando a Maia…</div>
+      <div class="carga-barra"><div id="carga-progreso"></div></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
