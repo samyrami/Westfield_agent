@@ -38,7 +38,7 @@ const PARTICLES = [
 
 /**
  * Playground real conectado a /api/maia (OpenAI en el servidor).
- * Layout inmersivo estilo Replika: Maia (avatar 3D) de fondo, chat flotando encima.
+ * Layout para incrustar en Canvas: banner de video idle de Maia arriba, chat debajo.
  * Maneja:
  *  - histórico de mensajes (Maia ↔ estudiante)
  *  - lógica de avance entre las 3 preguntas (vía advance_to_next_question)
@@ -207,7 +207,7 @@ export function Playground() {
         className="absolute -inset-6 -z-10 rounded-[2.75rem] bg-gradient-primary opacity-20 blur-3xl"
       />
 
-      {/* Panel: Maia a la izquierda (siempre visible) + chat a la derecha */}
+      {/* Panel: Maia en columna izquierda + chat a la derecha (apila en móvil) */}
       <div className="relative flex flex-col overflow-hidden rounded-[2rem] border border-border/70 bg-surface/30 shadow-glow-soft backdrop-blur-xl lg:h-[600px] lg:flex-row">
         {/* Fondo vivo CONTINUO en todo el panel — orbes/partículas atraviesan
             ambas zonas, así no hay borde perceptible entre Maia y el chat. */}
@@ -234,17 +234,11 @@ export function Playground() {
           className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-bg/25 to-bg/60 lg:bg-gradient-to-r lg:from-transparent lg:via-bg/20 lg:to-bg/55"
         />
 
-        {/* ===== IZQUIERDA: Maia ===== */}
-        <div className="relative h-[26rem] shrink-0 overflow-hidden sm:h-[30rem] lg:h-auto lg:w-[40%]">
-          {/* Avatar en caja de PROPORCIÓN FIJA (3:4) anclada por altura.
-              Como el ratio del canvas es constante (no depende del ancho ni
-              del zoom), visage encuadra el rostro IGUAL siempre; el overflow
-              recorta los lados, nunca aparece el cuerpo entero. */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-            <div className="aspect-[3/4] h-full w-auto animate-float-soft">
-              <MaiaAvatar state={avatarState} className="h-full w-full" />
-            </div>
-          </div>
+        {/* ===== IZQUIERDA: Maia (video idle) — 50% del panel ===== */}
+        <div className="relative h-72 shrink-0 overflow-hidden sm:h-80 lg:h-auto lg:w-1/2">
+          {/* Video idle cubriendo la columna; el encuadre/recorte lo define
+              object-position dentro de MaiaAvatar. */}
+          <MaiaAvatar state={avatarState} className="h-full w-full" />
           {/* Badge nombre + estado */}
           <div className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-border/60 bg-bg/50 px-3 py-1.5 backdrop-blur-md">
             <span className="relative flex h-2 w-2">
